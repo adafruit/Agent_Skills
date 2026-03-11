@@ -29,13 +29,13 @@ Use this skill when you need to:
 
 ## How It Works
 
-The CircuitPython device appears as a USB drive. After you save code to `code.py` on the device, run the helper script to execute the code on the CircuitPython device and capture serial output.
+The CircuitPython device appears as a USB drive. Run the helper script to copy a code file to the device, execute it on the CircuitPython device and capture serial output.
 
 ## Usage Instructions
 
 ### Step 1: Write the CircuitPython Code
 
-Save your CircuitPython code to `code.py` on the CircuitPython device. 
+Save your CircuitPython code to a local file in the working directory.
 
 **Example:**
 ```python
@@ -60,23 +60,24 @@ print("Done!")
 
 ### Step 2: Run the Output Reader Script
 
-After saving the code, immediately run the `circuitpython_run_and_read_output.py` script to execute the code and capture the device's output:
+After saving the code, run the `circuitpython_run_and_read_output.py` script to copy the code, execute it and capture the device's output:
 
 ```bash
-python3 circuitpython_run_and_read_output.py
+python3 circuitpython_run_and_read_output.py the_code_file.py
 ```
 
 The script will:
-1. Connect to the CircuitPython device's serial port
-2. Run the code by issuing ctrl+C and ctrl+D inputs
-3. Capture and display all printed output
-4. Return after 10 seconds or the time specified by the --duration argument
+1. Copy the file specified in the filename argument to the CircuitPython device.
+2. Connect to the CircuitPython device's serial port. Default is /dev/ttyACM0, use --port to change.
+3. Run the code by issuing ctrl+C and ctrl+D inputs
+4. Capture and display all printed output
+5. Return after 10 seconds or the time specified by the --duration argument
 
 ## Complete Workflow Example
 
 ```bash
-# 1. Save your code to the device
-cat > /path/to/CIRCUITPY/code.py << 'EOF'
+# 1. Save your code to a local file
+cat > example_code.py << 'EOF'
 import time
 print("Hello from CircuitPython!")
 for i in range(3):
@@ -86,10 +87,16 @@ print("Goodbye!")
 EOF
 
 # 2. Run the output reader
-python3 circuitpython_run_and_read_output.py
+python3 circuitpython_run_and_read_output.py example_code.py
 ```
 
 ## Common Patterns
+
+### End Print
+Put at the end of CircuitPython test scripts so that the runner script will be able to return without waiting the full duration when possible.
+```python
+print("~~END~~")
+```
 
 ### Sensor Reading
 ```python
@@ -135,6 +142,7 @@ print("NeoPixel set to red")
 3. **Keep code concise** - CircuitPython devices have limited memory; keep your test code focused
 4. **Add delays when needed** - Some hardware operations need time to complete; use `time.sleep()` appropriately
 5. **Import only what you need** - Minimize imports to reduce memory usage
+6. **`print("~~END~~")` at end of scripts** - Print this string to help the runner script finish faster when possible.
 
 ## Common Edge Cases
 
@@ -155,3 +163,6 @@ print("NeoPixel set to red")
 - The output reader has a --duration argument to control the timeout length
 - Ensure your CircuitPython code completes in a reasonable time
 - Add a final print statement to signal completion
+
+**Help command**:
+- The runner script supports the `--help` argument to print information about the script and its parameters.
