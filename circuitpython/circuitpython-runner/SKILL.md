@@ -22,14 +22,24 @@ Use this skill when you need to:
 
 ## Requirements
 
-- A CircuitPython-compatible device connected and mounted
 - Python 3 installed on the host system
-- pyserial installed inside the python virtual environment
-- The `circuitpython_run_and_read_output.py` script available in the skills scripts/ directory
+
+### USB Workflow Runner
+
+- A CircuitPython-compatible device connected and mounted
+- `pyserial` installed inside the python virtual environment
+- The `circuitpython_usb_runner.py` script available in the skills scripts/ directory
+
+### Web Workflow Runner
+
+- A CircuitPython-compatible device accessible over the local network
+- `circup`, `websocket-client`, and `requests` installed inside the python virtual environment
+- The `circuitpython_web_runner.py` script available in the skills scripts/ directory
 
 ## How It Works
 
-The CircuitPython device appears as a USB drive. Run the helper script to copy a code file to the device, execute it on the CircuitPython device and capture serial output.
+For the USB Workflow: The CircuitPython device appears as a USB drive. Run the usb_runner script to copy a code file to the device, execute it on the CircuitPython device and capture serial output.
+For the Web Workflow: The CircuitPython device hosts an HTTP server with API for modifying files, and a websocket connection for communicating serial output. Run the web_runner script to copy a code file to the device, execute it, and capture the serial output.
 
 ## Usage Instructions
 
@@ -58,17 +68,18 @@ for i in range(5):
 print("Done!")
 ```
 
-### Step 2: Run the Output Reader Script
+### Step 2: Use One Of the Runner Scripts
 
-After saving the code, run the `circuitpython_run_and_read_output.py` script to copy the code, execute it and capture the device's output:
+After saving the code, run the `circuitpython_usb_runner.py` or `circuitpython_web_runner.py` script to copy the code, execute it and capture the device's output:
 
 ```bash
-python3 circuitpython_run_and_read_output.py the_code_file.py
+python3 circuitpython_usb_runner.py the_code_file.py
+python3 circuitpython_web_runner.py the_code_file.py
 ```
 
 The script will:
 1. Copy the file specified in the filename argument to the CircuitPython device.
-2. Connect to the CircuitPython device's serial port. Default is /dev/ttyACM0, use --port to change.
+2. Connect to the CircuitPython device's serial port or websocket. Default is serial port is /dev/ttyACM0, use --port to change.
 3. Run the code by issuing ctrl+C and ctrl+D inputs
 4. Capture and display all printed output
 5. Return after 10 seconds or the time specified by the --duration argument
@@ -84,10 +95,14 @@ for i in range(3):
     print(f"Count: {i}")
     time.sleep(1)
 print("Goodbye!")
+print("~~END~~")
 EOF
 
 # 2. Run the output reader
-python3 circuitpython_run_and_read_output.py example_code.py
+# USB:
+python3 circuitpython_usb_runner.py example_code.py
+# Web:
+python3 circuitpython_web_runner.py --host 192.168.1.122 --password $CIRCUITPYTHON_WW_PASSWORD example_code.py
 ```
 
 ## Common Patterns
@@ -110,6 +125,7 @@ try:
     print(f"Temp: {temperature}°C, Humidity: {humidity}%")
 except RuntimeError as e:
     print(f"Error reading sensor: {e}")
+print("~~END~~")
 ```
 
 ### I2C Device Communication
@@ -123,6 +139,7 @@ while not i2c.try_lock():
 
 print("I2C devices found:", [hex(addr) for addr in i2c.scan()])
 i2c.unlock()
+print("~~END~~")
 ```
 
 ### NeoPixel Control
@@ -133,6 +150,7 @@ import neopixel
 pixels = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.3)
 pixels[0] = (255, 0, 0)  # Red
 print("NeoPixel set to red")
+print("~~END~~")
 ```
 
 ## Tips and Best Practices
@@ -155,7 +173,7 @@ print("NeoPixel set to red")
 ## Troubleshooting
 
 **No output received**: 
-- Ask the user to verify the device is connected and mounted
+- Ask the user to verify the device is connected and mounted, or that the web workflow device is running
 - Check that the serial port is accessible
 - Ensure your code contains print statements
 
